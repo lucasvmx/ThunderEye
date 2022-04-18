@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import Bot from "./bot";
 import { Forum } from "./forum";
 import { logError } from "./log";
+import { startHttp } from "./server";
 
 // flag to check if dev server is open
 let devServerOpen = false;
@@ -33,6 +34,8 @@ function fetchForum(posts: string[], channelId: string, bot: Bot) {
 async function main() {
   // Load environment variables
   loadEnv();
+
+  startHttp();
 
   const { CHANNEL_ID } = process.env;
 
