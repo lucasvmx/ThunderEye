@@ -14,6 +14,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "node build/main.js"
+    "test": "node build/main.js",
+    "start": "node build/main.js"
   }
 }
