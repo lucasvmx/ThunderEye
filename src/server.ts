@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 import { logError, logInfo } from "./log";
 
 export function startHttp() {
@@ -16,6 +17,9 @@ export function startHttp() {
     return res.status(200).json({ alive: true, pid: `${process.pid}` });
   });
 
+  app.use(express.json());
+  app.use(cors());
+  app.use(routes);
   app.listen(PORT);
   logInfo("started HTTP server");
 }
