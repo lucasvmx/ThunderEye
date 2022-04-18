@@ -49,7 +49,7 @@ async function main() {
   bot.setupTriggers();
 
   // Send ping
-  bot.sendMsg(CHANNEL_ID, "Hello, i'm alive :smiley:");
+  bot.sendMsg(CHANNEL_ID, "Hello, i'm alive");
 
   // Setup forum parser service (page 1 have been selected)
   const forum = new Forum();
