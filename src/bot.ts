@@ -5,7 +5,7 @@ import { logError, logInfo, logWarn } from "./log";
 export default class Bot {
   bot: Telegraf<Context<Update>>;
 
-  Bot() {
+  constructor() {
     const { BOT_TOKEN } = process.env;
 
     if (BOT_TOKEN === undefined) {
