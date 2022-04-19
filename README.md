@@ -137,8 +137,8 @@ Subscribe into telegram channel https://t.me/wtdevchan and wait for messages
 
 ## Roadmap
 
-- [+] Implement basic notifications over telegram
-  - [-] Improve algorithm used to check if dev server is down
+- [ + ] Implement basic notifications over telegram
+  - [ - ] Improve algorithm used to check if dev server is down
 - [ ] Notifications over MQTT
 
 See the [open issues](https://github.com/lucas-engen/ThunderEye/issues) for a full list of proposed features (and known issues).
