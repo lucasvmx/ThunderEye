@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio";
 import * as https from "https";
-import { logInfo } from "./log";
+import { logInfo } from "./Log";
 import { IncomingMessage } from "http";
 import jsdom from "jsdom";
 

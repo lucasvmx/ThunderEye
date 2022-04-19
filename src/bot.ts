@@ -1,6 +1,6 @@
 import { Context, Telegraf } from "telegraf";
 import { Update } from "typegram";
-import { logError, logInfo, logWarn } from "./log";
+import { logError, logInfo, logWarn } from "./Log"
 
 export default class Bot {
   bot: Telegraf<Context<Update>>;

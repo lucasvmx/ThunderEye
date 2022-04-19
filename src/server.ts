@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import { logError, logInfo } from "./log";
+import { logError, logInfo } from "./Log";
 
 export function startHttp() {
   const { PORT } = process.env;

@@ -1,8 +1,8 @@
 import dotenv from "dotenv";
-import Bot from "./bot";
-import { Forum } from "./forum";
-import { logError } from "./log";
-import { startHttp } from "./server";
+import Bot from "./Bot";
+import { Forum } from "./Forum";
+import { logError } from "./Log";
+import { startHttp } from "./Server";
 import moment from "moment";
 
 const thirtyMinutes = 1.8e6;
