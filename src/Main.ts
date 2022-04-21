@@ -8,12 +8,21 @@ import moment from "moment";
 const thirtyMinutes = 1.8e6;
 const threeHours = 1.08e7;
 
-let devServerStates = {
-  OPEN: 1,
-  OPENING: 2,
-  CLOSED: 3,
-  UNKNOWN: 4,
-};
+interface momentData {
+  currentTime: moment.Moment;
+  startTime: moment.Moment;
+  endTime: moment.Moment;
+}
+
+/**
+ * Possible states for dev server
+ */
+enum devServerStates {
+  OPEN = 1,
+  OPENING,
+  CLOSED,
+  UNKNOWN,
+}
 
 // flag to check if dev server is open
 let devServerState = devServerStates.UNKNOWN;
@@ -22,8 +31,8 @@ function loadEnv() {
   dotenv.config();
 }
 
-async function fetchForum(posts: string[]): Promise<moment.Moment[]> {
-  return new Promise<moment.Moment[]>((resolve, reject) => {
+async function fetchForum(posts: string[]): Promise<Required<momentData>> {
+  return new Promise<momentData>((resolve) => {
     posts.forEach((p) => {
       const post = p.toLowerCase();
 
@@ -49,7 +58,7 @@ async function fetchForum(posts: string[]): Promise<moment.Moment[]> {
           devServerState = devServerStates.CLOSED;
         }
 
-        resolve([nd, sd, ed]);
+        resolve({ startTime: sd, currentTime: nd, endTime: ed });
       }
     });
   });
@@ -58,9 +67,13 @@ async function fetchForum(posts: string[]): Promise<moment.Moment[]> {
 function sendNotifications(
   channelId: string,
   bot: Bot,
-  moments: moment.Moment[]
+  moments: Required<momentData>
 ) {
-  const [now, start, end] = moments;
+  const [now, start, end] = [
+    moments.currentTime,
+    moments.startTime,
+    moments.endTime,
+  ];
 
   switch (devServerState) {
     case devServerStates.OPEN:
@@ -78,7 +91,7 @@ function sendNotifications(
   }
 }
 
-async function main() {
+function main() {
   // Load environment variables
   loadEnv();
 
@@ -97,7 +110,7 @@ async function main() {
   bot.setupTriggers();
 
   // Send ping
-  bot.sendMsg(CHANNEL_ID, "Hello, i'm alive");
+  bot.sendMsg(CHANNEL_ID, "Hello, i'm alive test");
 
   // Setup forum parser service (page 1 have been selected)
   const forum = new Forum();
