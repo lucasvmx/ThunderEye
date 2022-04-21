@@ -14,7 +14,8 @@ function startHttp() {
   // Adds basic route
   const routes = express.Router();
   routes.get("/health", async (req, res) => {
-    return res.status(200).json({ alive: true, pid: `${process.pid}` });
+    const text = `${process.pid}`;
+    return res.status(200).write(text);
   });
 
   app.use(express.json());
