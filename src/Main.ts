@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import Bot from "./Bot";
+import { Bot } from "./Bot";
 import { Forum } from "./Forum";
 import { logError } from "./Log";
 import { startHttp } from "./Server";

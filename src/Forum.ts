@@ -4,7 +4,7 @@ import { logInfo } from "./Log";
 import { IncomingMessage } from "http";
 import jsdom from "jsdom";
 
-export class Forum {
+class Forum {
   url = "https://forum.warthunder.com/index.php?/forum/26-project-news";
 
   constructor() {}
@@ -86,3 +86,5 @@ export class Forum {
     });
   }
 }
+
+export { Forum };

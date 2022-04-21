@@ -2,7 +2,7 @@ import express from "express";
 import cors from "cors";
 import { logError, logInfo } from "./Log";
 
-export function startHttp() {
+function startHttp() {
   const { PORT } = process.env;
   const app = express();
 
@@ -23,3 +23,5 @@ export function startHttp() {
   app.listen(PORT);
   logInfo("started HTTP server");
 }
+
+export { startHttp };

@@ -1,8 +1,8 @@
 import { Context, Telegraf } from "telegraf";
 import { Update } from "typegram";
-import { logError, logInfo, logWarn } from "./Log"
+import { logError, logInfo, logWarn } from "./Log";
 
-export default class Bot {
+class Bot {
   bot: Telegraf<Context<Update>>;
 
   constructor() {
@@ -41,3 +41,5 @@ export default class Bot {
     this.bot.telegram.sendMessage(chatId, msg);
   }
 }
+
+export { Bot };
