@@ -36,12 +36,23 @@ async function fetchForum(posts: string[]): Promise<Required<momentData>> {
     posts.forEach((p) => {
       const post = p.toLowerCase();
 
-      if (post.indexOf("dev server opening") !== -1) {
+      if (post.indexOf("dev server opening") !== -1 && post.indexOf("!") !== -1) {
         // Extract date interval
         const postSplit = post.split("!");
+		
+		if (postSplit.length < 2) {
+			console.info(`wrong post lenght: ${postSplit.length}`)
+			return;
+		}
+		
         const date = postSplit[1];
         const intervals = date.substring(1, 24).split("-");
-
+		
+		if (intervals.length < 2) {
+			console.info(`wrong len in intervals: ${intervals.length}`);
+			return
+		}
+		
         // Extracts time data
         const start = intervals[0].trim().replaceAll(".", "/");
         const end = intervals[1].trim().replaceAll(".", "/");
@@ -87,6 +98,7 @@ function sendNotifications(
       break;
 
     case devServerStates.CLOSED:
+	  bot.sendMsg(channelId, `Dev server is closed for now: ${now.format()}`);
       break;
   }
 }
@@ -110,7 +122,7 @@ function main() {
   bot.setupTriggers();
 
   // Send ping
-  bot.sendMsg(CHANNEL_ID, "Hello, i'm alive test");
+  bot.sendMsg(CHANNEL_ID, "Hello, i'm alive");
 
   // Setup forum parser service (page 1 have been selected)
   const forum = new Forum();
