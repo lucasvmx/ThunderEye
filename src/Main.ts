@@ -33,12 +33,23 @@ async function fetchForum(posts: string[]): Promise<Required<momentData>> {
     posts.forEach((p) => {
       const post = p.toLowerCase();
 
-      if (post.indexOf("dev server opening") !== -1) {
+      if (post.indexOf("dev server opening") !== -1 && post.indexOf("!") !== -1) {
         // Extract date interval
         const postSplit = post.split("!");
+		
+		if (postSplit.length < 2) {
+			console.info(`wrong post lenght: ${postSplit.length}`)
+			return;
+		}
+		
         const date = postSplit[1];
         const intervals = date.substring(1, 24).split("-");
-
+		
+		if (intervals.length < 2) {
+			console.info(`wrong len in intervals: ${intervals.length}`);
+			return
+		}
+		
         // Extracts time data
         const start = intervals[0].trim().replaceAll(".", "/");
         const end = intervals[1].trim().replaceAll(".", "/");
@@ -106,6 +117,7 @@ function main() {
   // Load telegram bot
   const bot = new Bot();
   bot.setupTriggers();
+
 
   // Setup forum parser service (page 1 have been selected)
   const forum = new Forum();
