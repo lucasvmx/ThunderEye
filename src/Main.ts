@@ -114,8 +114,6 @@ function main() {
     try {
       const posts = await forum.getPostItems();
 
-      console.log(posts);
-
       const moments = await fetchForum(posts);
 
       sendNotifications(CHANNEL_ID, bot, moments);
