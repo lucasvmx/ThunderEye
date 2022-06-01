@@ -66,7 +66,7 @@ class Forum {
                 return;
               }
 
-              const content = param.textContent?.toString();
+              const content = param.textContent?.toString().trim();
               if (content === undefined) {
                 return;
               }
