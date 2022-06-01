@@ -5,9 +5,6 @@ import { logError } from "./Log";
 import { startHttp } from "./Server";
 import moment from "moment";
 
-const thirtyMinutes = 1.8e6;
-const threeHours = 1.08e7;
-
 interface momentData {
   currentTime: moment.Moment;
   startTime: moment.Moment;
@@ -118,6 +115,9 @@ function main() {
   var runTask = async () => {
     try {
       const posts = await forum.getPostItems();
+
+      console.log(posts);
+      
       const moments = await fetchForum(posts);
 
       sendNotifications(CHANNEL_ID, bot, moments);
