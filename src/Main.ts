@@ -5,9 +5,6 @@ import { logError } from "./Log";
 import { startHttp } from "./Server";
 import moment from "moment";
 
-const thirtyMinutes = 1.8e6;
-const threeHours = 1.08e7;
-
 interface momentData {
   currentTime: moment.Moment;
   startTime: moment.Moment;
@@ -98,7 +95,7 @@ function sendNotifications(
       break;
 
     case devServerStates.CLOSED:
-	  bot.sendMsg(channelId, `Dev server is closed for now: ${now.format()}`);
+      bot.sendMsg(channelId, `Dev server was closed ${end.toNow(true)} ago`);
       break;
   }
 }
@@ -121,24 +118,23 @@ function main() {
   const bot = new Bot();
   bot.setupTriggers();
 
-  // Send ping
-  bot.sendMsg(CHANNEL_ID, "Hello, i'm alive");
 
   // Setup forum parser service (page 1 have been selected)
   const forum = new Forum();
 
-  setInterval(async () => {
+  var runTask = async () => {
     try {
       const posts = await forum.getPostItems();
+
       const moments = await fetchForum(posts);
 
-      setTimeout(() => {
-        sendNotifications(CHANNEL_ID, bot, moments);
-      }, threeHours);
+      sendNotifications(CHANNEL_ID, bot, moments);
     } catch (err) {
       logError(`could not fetch posts: ${err}`);
     }
-  }, thirtyMinutes);
+  };
+
+  runTask();
 }
 
 main();
