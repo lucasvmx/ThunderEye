@@ -84,6 +84,7 @@ function sendNotifications(
       break;
 
     case devServerStates.CLOSED:
+      bot.sendMsg(channelId, `Dev server was closed ${end.toNow(true)} ago`);
       break;
   }
 }
@@ -106,9 +107,6 @@ function main() {
   const bot = new Bot();
   bot.setupTriggers();
 
-  // Send ping
-  bot.sendMsg(CHANNEL_ID, "Hello, i'm alive");
-
   // Setup forum parser service (page 1 have been selected)
   const forum = new Forum();
 
@@ -117,7 +115,7 @@ function main() {
       const posts = await forum.getPostItems();
 
       console.log(posts);
-      
+
       const moments = await fetchForum(posts);
 
       sendNotifications(CHANNEL_ID, bot, moments);
