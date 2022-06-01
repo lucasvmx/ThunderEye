@@ -110,23 +110,23 @@ function main() {
   bot.setupTriggers();
 
   // Send ping
-  bot.sendMsg(CHANNEL_ID, "Hello, i'm alive test");
+  bot.sendMsg(CHANNEL_ID, "Hello, i'm alive");
 
   // Setup forum parser service (page 1 have been selected)
   const forum = new Forum();
 
-  setInterval(async () => {
+  var runTask = async () => {
     try {
       const posts = await forum.getPostItems();
       const moments = await fetchForum(posts);
 
-      setTimeout(() => {
-        sendNotifications(CHANNEL_ID, bot, moments);
-      }, threeHours);
+      sendNotifications(CHANNEL_ID, bot, moments);
     } catch (err) {
       logError(`could not fetch posts: ${err}`);
     }
-  }, thirtyMinutes);
+  };
+
+  runTask();
 }
 
 main();
