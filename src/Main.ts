@@ -32,9 +32,6 @@ async function fetchForum(posts: string[]): Promise<Required<momentData>> {
   return new Promise<momentData>((resolve) => {
     const p = posts[0];
 
-    console.log("POST: " + p);
-
-    //posts.forEach((p) => {
     const post = p.toLowerCase();
 
     // Extract date interval
@@ -70,7 +67,6 @@ async function fetchForum(posts: string[]): Promise<Required<momentData>> {
     }
 
     resolve({ startTime: sd, currentTime: nd, endTime: ed });
-    //});
   });
 }
 
@@ -87,7 +83,6 @@ function sendNotifications(
 
   switch (devServerState) {
     case devServerStates.OPEN:
-      console.log("dev server is open");
       bot.sendMsg(
         channelId,
         `Dev server is open and will be closed ${end.fromNow()}`
