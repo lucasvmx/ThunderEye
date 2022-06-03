@@ -63,6 +63,12 @@ async function fetchForum(posts: string[]): Promise<Required<momentData>> {
         const sd = moment(start, "DD/MM/YYYY");
         const ed = moment(end, "DD/MM/YYYY");
 
+        console.log(`start: ${sd.toString()}`);
+        console.log(`end: ${ed.toString()}`);
+        console.log(`${nd.isBetween(sd, ed)}`);
+        console.log(`${nd.isSameOrAfter(sd)}`);
+        console.log(`${nd.isSameOrBefore(ed)}`);
+
         if (nd.isBetween(sd, ed)) {
           devServerState = devServerStates.OPEN;
         } else if (nd.isBefore(sd)) {
