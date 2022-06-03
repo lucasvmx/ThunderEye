@@ -72,7 +72,10 @@ class Forum {
               }
 
               // Adds posts to array
-              forumTitles.push(content);
+              if (content.toLowerCase().startsWith("dev server opening")) {
+                console.log(content);
+                forumTitles.push(content);
+              }
             });
           });
         });
