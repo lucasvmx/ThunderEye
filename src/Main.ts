@@ -30,56 +30,47 @@ function loadEnv() {
 
 async function fetchForum(posts: string[]): Promise<Required<momentData>> {
   return new Promise<momentData>((resolve) => {
-    posts.forEach((p) => {
-      const post = p.toLowerCase();
+    const p = posts[0];
 
-      if (
-        post.indexOf("dev server opening") !== -1 &&
-        post.indexOf("!") !== -1
-      ) {
-        // Extract date interval
-        const postSplit = post.split("!");
+    console.log("POST: " + p);
 
-        if (postSplit.length < 2) {
-          console.info(`wrong post lenght: ${postSplit.length}`);
-          return;
-        }
+    //posts.forEach((p) => {
+    const post = p.toLowerCase();
 
-        const date = postSplit[1];
-        const intervals = date.substring(1, 24).split("-");
+    // Extract date interval
+    const postSplit = post.split("!");
 
-        console.log(`SPLIT: ${date}`);
+    if (postSplit.length < 2) {
+      console.info(`wrong post lenght: ${postSplit.length}`);
+      return;
+    }
 
-        if (intervals.length < 2) {
-          console.info(`wrong len in intervals: ${intervals.length}`);
-          return;
-        }
+    const date = postSplit[1];
+    const intervals = date.substring(1, 24).split("-");
 
-        // Extracts time data
-        const start = intervals[0].trim().replaceAll(".", "/");
-        const end = intervals[1].trim().replaceAll(".", "/");
+    if (intervals.length < 2) {
+      console.info(`wrong len in intervals: ${intervals.length}`);
+      return;
+    }
 
-        const nd = moment(moment.now());
-        const sd = moment(start, "DD/MM/YYYY");
-        const ed = moment(end, "DD/MM/YYYY");
+    // Extracts time data
+    const start = intervals[0].trim().replaceAll(".", "/");
+    const end = intervals[1].trim().replaceAll(".", "/");
 
-        console.log(`start: ${sd.toString()}`);
-        console.log(`end: ${ed.toString()}`);
-        console.log(`${nd.isBetween(sd, ed)}`);
-        console.log(`${nd.isSameOrAfter(sd)}`);
-        console.log(`${nd.isSameOrBefore(ed)}`);
+    const nd = moment(moment.now());
+    const sd = moment(start, "DD/MM/YYYY");
+    const ed = moment(end, "DD/MM/YYYY");
 
-        if (nd.isBetween(sd, ed)) {
-          devServerState = devServerStates.OPEN;
-        } else if (nd.isBefore(sd)) {
-          devServerState = devServerStates.OPENING;
-        } else {
-          devServerState = devServerStates.CLOSED;
-        }
+    if (nd.isBetween(sd, ed)) {
+      devServerState = devServerStates.OPEN;
+    } else if (nd.isBefore(sd)) {
+      devServerState = devServerStates.OPENING;
+    } else {
+      devServerState = devServerStates.CLOSED;
+    }
 
-        resolve({ startTime: sd, currentTime: nd, endTime: ed });
-      }
-    });
+    resolve({ startTime: sd, currentTime: nd, endTime: ed });
+    //});
   });
 }
 
@@ -96,6 +87,7 @@ function sendNotifications(
 
   switch (devServerState) {
     case devServerStates.OPEN:
+      console.log("dev server is open");
       bot.sendMsg(
         channelId,
         `Dev server is open and will be closed ${end.fromNow()}`
