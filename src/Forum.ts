@@ -72,6 +72,7 @@ class Forum {
               }
 
               // Adds posts to array
+              console.log(content);
               forumTitles.push(content);
             });
           });
