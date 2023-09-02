@@ -14,6 +14,7 @@ const TIME_1S = 1000;
 const TIME_1M = TIME_1S * 60;
 const TIME_1H = TIME_1M * 60;
 const TIME_12H = TIME_1H * 12;
+const TIME_24H = TIME_12H * 2;
 
 /**
  * Possible states for dev server
@@ -76,7 +77,7 @@ async function checkPosts(posts: Required<string[]>): Promise<Required<momentDat
 	});
 }
 
-function sendNotifications(channelId: string, bot: Bot, moments: Required<momentData>) {
+function sendNotifications(bot: Bot, moments: Required<momentData>) {
 	const [now, start, end] = [moments.currentTime, moments.startTime, moments.endTime];
 
 	switch (devServerState) {
@@ -93,6 +94,10 @@ function sendNotifications(channelId: string, bot: Bot, moments: Required<moment
 		default:
 			logInfo("Unknown server status");
 	}
+}
+
+function sendNotification(bot: Bot, message: Required<string>) {
+	bot.sendMsg(message);
 }
 
 function main() {
@@ -116,22 +121,31 @@ function main() {
 	const forum = new Forum();
 
 	var runTask = async () => {
+		let notificationSent = false;
+
 		try {
 			// fetches all posts from first page
 			const posts = await forum.fetchPosts();
 
-			// Extracts time data from posts
-			const moments = await checkPosts(posts);
+			let msg = posts[0];
 
-			sendNotifications(CHANNEL_ID, bot, moments);
+			sendNotification(bot, msg);
+			notificationSent = true;
 		} catch (err) {
 			logError(`could not fetch posts: ${err}`);
 		}
 
-		// Fetches forum two times per day
-		setTimeout(() => {
-			runTask();
-		}, TIME_12H);
+		if (notificationSent) {
+			// Increases the time
+			setTimeout(() => {
+				runTask();
+			}, TIME_24H);
+		} else {
+			// Fetches forum two times per day
+			setTimeout(() => {
+				runTask();
+			}, TIME_12H);
+		}
 	};
 
 	runTask();
