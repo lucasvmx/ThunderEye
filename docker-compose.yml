@@ -1,0 +1,11 @@
+services:
+  thundereye:
+    container_name: "thunder_eye"
+    restart: always
+    build: .
+    environment:
+      - TOKEN=${TOKEN}
+      - CHANNEL_ID=${CHANNEL_ID}
+
+networks:
+  default:

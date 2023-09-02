@@ -1,93 +1,81 @@
-import * as cheerio from "cheerio";
-import * as https from "https";
-import { logInfo } from "./Log";
 import { IncomingMessage } from "http";
+import * as https from "https";
 import jsdom from "jsdom";
+import { logInfo } from "./Log";
 
 class Forum {
-  url = "https://forum.warthunder.com/index.php?/forum/26-project-news";
+	url = "https://forum.warthunder.com/c/official-news-and-information/7";
 
-  constructor() {}
+	constructor() {}
 
-  async getRawData(): Promise<string> {
-    let rawData: string = "";
+	/**
+	 * Fetches forum raw html data
+	 * @returns a string containing HTML content returned from forum
+	 */
+	async getRawData(): Promise<string> {
+		let rawData: string = "";
 
-    return new Promise<string>((resolve, reject) => {
-      https.get(this.url, function (res: IncomingMessage) {
-        const { statusCode } = res;
+		return new Promise<string>((resolve, reject) => {
+			https.get(this.url, function (res: IncomingMessage) {
+				const { statusCode } = res;
 
-        logInfo(`status code: ${statusCode}`);
-        logInfo(`content size: ${res.headers["content-length"]}`);
+				logInfo(`status code: ${statusCode}`);
+				logInfo(`content size: ${res.headers["content-length"]}`);
 
-        if (statusCode !== 200) {
-          throw new Error(`unexpected HTTP code: ${statusCode}`);
-        }
+				if (statusCode !== 200) {
+					throw new Error(`unexpected HTTP code: ${statusCode}`);
+				}
 
-        res.on("error", () => {
-          reject("");
-        });
-        res.on("data", (chunk) => (rawData += chunk));
-        res.on("close", () => {
-          logInfo(`request finished with ${rawData.length} bytes received`);
-          resolve(rawData);
-        });
-      });
-    });
-  }
+				res.on("error", () => {
+					reject("");
+				});
+				res.on("data", (chunk) => (rawData += chunk));
+				res.on("close", () => {
+					logInfo(`request finished with ${rawData.length} bytes received`);
+					resolve(rawData);
+				});
+			});
+		});
+	}
 
-  async getPostItems(): Promise<string[]> {
-    let forumTitles: string[] = [];
+	/**
+	 * Fetches all posts from the first page of forum and returns its titles
+	 * @returns
+	 */
+	async fetchPosts(): Promise<string[]> {
+		let forumTitles: string[] = [];
 
-    return new Promise<string[]>(async (resolve, reject) => {
-      const rawHtml = await this.getRawData();
-      const dom = new jsdom.JSDOM(rawHtml);
-      const $ = cheerio.load(rawHtml);
+		return new Promise<string[]>(async (resolve, reject) => {
+			const rawHtml = await this.getRawData();
+			const dom = new jsdom.JSDOM(rawHtml);
+			//const $ = cheerio.load(rawHtml);
 
-      const items =
-        dom.window.document.getElementsByClassName("ipsDataItem_main");
+			const items = dom.window.document.getElementsByClassName("title raw-link raw-topic-link");
 
-      if (items.length === 0) {
-        throw new Error("table not found");
-      }
+			if (items.length === 0) {
+				throw new Error("no items found");
+			}
 
-      for (let i = 0; i < items.length; i++) {
-        items[i].childNodes.forEach((tag) => {
-          // Ignore non h4 tags
-          if (tag.nodeName.toLowerCase() !== "h4") return;
+			for (let i = 0; i < items.length; i++) {
+				let title = items[i].textContent?.toLowerCase();
 
-          tag.childNodes.forEach((t) => {
-            // Ignore non-divs
-            if (t.nodeName.toLowerCase() !== "div") return;
+				if (title === undefined) {
+					continue;
+				}
 
-            let typeBreakDivChildNodes = t.childNodes;
+				if (title.startsWith("dev server opening")) {
+					logInfo(`pushing tag ${title} to forums list`);
+					forumTitles.push(title);
+				}
+			}
 
-            typeBreakDivChildNodes.forEach((param) => {
-              if (param.nodeType == param.TEXT_NODE) {
-                return;
-              }
-
-              const content = param.textContent?.toString().trim();
-              if (content === undefined) {
-                return;
-              }
-
-              // Adds posts to array
-              if (content.toLowerCase().startsWith("dev server opening")) {
-                console.log(content);
-                forumTitles.push(content);
-              }
-            });
-          });
-        });
-      }
-
-      if (forumTitles.length == 0) {
-        reject([]);
-      } else {
-        resolve(forumTitles);
-      }
-    });
-  }
+			if (forumTitles.length == 0) {
+				reject("no dev server tags found");
+			} else {
+				resolve(forumTitles);
+			}
+		});
+	}
 }
 
 export { Forum };

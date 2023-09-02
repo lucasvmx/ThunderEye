@@ -1,137 +1,154 @@
 import dotenv from "dotenv";
+import moment from "moment";
 import { Bot } from "./Bot";
 import { Forum } from "./Forum";
-import { logError } from "./Log";
-import { startHttp } from "./Server";
-import moment from "moment";
+import { logError, logInfo } from "./Log";
 
 interface momentData {
-  currentTime: moment.Moment;
-  startTime: moment.Moment;
-  endTime: moment.Moment;
+	currentTime: moment.Moment;
+	startTime: moment.Moment;
+	endTime: moment.Moment;
 }
+
+const TIME_1S = 1000;
+const TIME_1M = TIME_1S * 60;
+const TIME_1H = TIME_1M * 60;
+const TIME_12H = TIME_1H * 12;
+const TIME_24H = TIME_12H * 2;
 
 /**
  * Possible states for dev server
  */
 enum devServerStates {
-  OPEN = 1,
-  OPENING,
-  CLOSED,
-  UNKNOWN,
+	OPEN = 1,
+	OPENING,
+	CLOSED,
+	UNKNOWN,
 }
 
 // flag to check if dev server is open
 let devServerState = devServerStates.UNKNOWN;
 
 function loadEnv() {
-  dotenv.config();
+	dotenv.config();
 }
 
-async function fetchForum(posts: string[]): Promise<Required<momentData>> {
-  return new Promise<momentData>((resolve) => {
-    const p = posts[0];
+async function checkPosts(posts: Required<string[]>): Promise<Required<momentData>> {
+	return new Promise<momentData>((resolve) => {
+		const p = posts[0];
 
-    const post = p.toLowerCase();
+		const post = p.toLowerCase();
 
-    // Extract date interval
-    const postSplit = post.split("!");
+		// Extract date interval
+		const postSplit = post.split("!");
 
-    if (postSplit.length < 2) {
-      console.info(`wrong post lenght: ${postSplit.length}`);
-      return;
-    }
+		if (postSplit.length < 2) {
+			console.info(`wrong post lenght: ${postSplit.length}`);
+			return;
+		}
 
-    const date = postSplit[1];
-    const intervals = date.substring(1, 24).split("-");
+		const date = postSplit[1];
+		const intervals = date.substring(1, 24).split("-");
 
-    if (intervals.length < 2) {
-      console.info(`wrong len in intervals: ${intervals.length}`);
-      return;
-    }
+		if (intervals.length < 2) {
+			console.info(`wrong len in intervals: ${intervals.length}`);
+			return;
+		}
 
-    // Extracts time data
-    const start = intervals[0].trim().replaceAll(".", "/");
-    const end = intervals[1].trim().replaceAll(".", "/");
+		// Extracts time data
+		const start = intervals[0].trim().replaceAll(".", "/");
+		const end = intervals[1].trim().replaceAll(".", "/");
 
-    const nd = moment(moment.now());
-    const sd = moment(start, "DD/MM/YYYY");
-    const ed = moment(end, "DD/MM/YYYY");
+		logInfo(`date and time extracted (start, end): ${start},${end}`);
 
-    if (nd.isBetween(sd, ed)) {
-      devServerState = devServerStates.OPEN;
-    } else if (nd.isBefore(sd)) {
-      devServerState = devServerStates.OPENING;
-    } else {
-      devServerState = devServerStates.CLOSED;
-    }
+		const nd = moment(moment.now());
+		const sd = moment(start, "DD/MM/YYYY");
+		const ed = moment(end, "DD/MM/YYYY");
 
-    resolve({ startTime: sd, currentTime: nd, endTime: ed });
-  });
+		if (nd.isBetween(sd, ed)) {
+			devServerState = devServerStates.OPEN;
+		} else if (nd.isBefore(sd)) {
+			devServerState = devServerStates.OPENING;
+		} else {
+			devServerState = devServerStates.CLOSED;
+		}
+
+		resolve({ startTime: sd, currentTime: nd, endTime: ed });
+	});
 }
 
-function sendNotifications(
-  channelId: string,
-  bot: Bot,
-  moments: Required<momentData>
-) {
-  const [now, start, end] = [
-    moments.currentTime,
-    moments.startTime,
-    moments.endTime,
-  ];
+function sendNotifications(bot: Bot, moments: Required<momentData>) {
+	const [now, start, end] = [moments.currentTime, moments.startTime, moments.endTime];
 
-  switch (devServerState) {
-    case devServerStates.OPEN:
-      bot.sendMsg(
-        channelId,
-        `Dev server is open and will be closed ${end.fromNow()}`
-      );
-      break;
-    case devServerStates.OPENING:
-      bot.sendMsg(channelId, `Dev server will be opening ${start.fromNow()}`);
-      break;
+	switch (devServerState) {
+		case devServerStates.OPEN:
+			bot.sendMsg(`Dev server is open and will be closed ${end.fromNow()}`);
+			break;
+		case devServerStates.OPENING:
+			bot.sendMsg(`Dev server will be opening ${start.fromNow()}`);
+			break;
 
-    case devServerStates.CLOSED:
-      bot.sendMsg(channelId, `Dev server was closed ${end.toNow(true)} ago`);
-      break;
-  }
+		case devServerStates.CLOSED:
+			logInfo(`Dev server was closed ${end.toNow(true)} ago`);
+			break;
+		default:
+			logInfo("Unknown server status");
+	}
+}
+
+function sendNotification(bot: Bot, message: Required<string>) {
+	bot.sendMsg(message);
 }
 
 function main() {
-  // Load environment variables
-  loadEnv();
+	// Load environment variables
+	loadEnv();
 
-  // Start HTTP server
-  startHttp();
+	const { CHANNEL_ID, TOKEN } = process.env;
 
-  const { CHANNEL_ID } = process.env;
+	if (CHANNEL_ID === undefined || TOKEN === undefined) {
+		logError("telegram can't be configured. token or channel ID is invalid");
+		process.exit(1);
+	}
 
-  if (CHANNEL_ID === undefined) {
-    logError("channel ID isn't defined");
-    process.exit(1);
-  }
+	// Load telegram bot
+	const bot = new Bot(TOKEN, CHANNEL_ID);
+	bot.setupTriggers();
 
-  // Load telegram bot
-  const bot = new Bot();
-  bot.setupTriggers();
+	bot.sendMsg(`starting ThunderEye service at ${moment.utc().format()} - UTC`);
 
-  // Setup forum parser service (page 1 have been selected)
-  const forum = new Forum();
+	// Setup forum parser service
+	const forum = new Forum();
 
-  var runTask = async () => {
-    try {
-      const posts = await forum.getPostItems();
+	var runTask = async () => {
+		let notificationSent = false;
 
-      const moments = await fetchForum(posts);
+		try {
+			// fetches all posts from first page
+			const posts = await forum.fetchPosts();
 
-      sendNotifications(CHANNEL_ID, bot, moments);
-    } catch (err) {
-      logError(`could not fetch posts: ${err}`);
-    }
-  };
+			let msg = posts[0];
 
-  runTask();
+			sendNotification(bot, msg);
+			notificationSent = true;
+		} catch (err) {
+			logError(`could not fetch posts: ${err}`);
+		}
+
+		if (notificationSent) {
+			// Increases the time
+			setTimeout(() => {
+				runTask();
+			}, TIME_24H);
+		} else {
+			// Fetches forum two times per day
+			setTimeout(() => {
+				runTask();
+			}, TIME_12H);
+		}
+	};
+
+	runTask();
 }
 
 main();

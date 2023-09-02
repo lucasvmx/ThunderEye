@@ -23,7 +23,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "node build/Main.js",
-    "start": "node build/Main.js"
+    "start": "node build/Main.js",
+    "test": "tsc && node build/Main.js"
   }
 }

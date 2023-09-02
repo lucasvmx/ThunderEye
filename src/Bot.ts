@@ -1,45 +1,42 @@
-import { Context, Telegraf } from "telegraf";
-import { Update } from "typegram";
-import { logError, logInfo, logWarn } from "./Log";
+import { Telegraf } from "telegraf";
+import { logInfo, logWarn } from "./Log";
 
 class Bot {
-  bot: Telegraf<Context<Update>>;
+	bot;
 
-  constructor() {
-    const { BOT_TOKEN } = process.env;
+	chatId: string;
 
-    if (BOT_TOKEN === undefined) {
-      logError("token is not set");
-      process.exit(1);
-    }
+	constructor(token: string, chatId: string) {
+		// Initializes bot
+		this.bot = new Telegraf(token);
+		this.bot.launch();
 
-    this.bot = new Telegraf(BOT_TOKEN);
-    this.bot.launch();
+		this.chatId = chatId;
 
-    logInfo("bot loading completed");
-  }
+		logInfo("bot loading completed");
+	}
 
-  /**
-   * Configure triggers to enable graceful bot shutdown
-   */
-  setupTriggers() {
-    process.once("SIGINT", () => this.bot.stop("SIGINT"));
-    process.once("SIGTERM", () => this.bot.stop("SIGTERM"));
-    logInfo("signal handlers configured");
-  }
+	/**
+	 * Configure triggers to enable graceful bot shutdown
+	 */
+	setupTriggers() {
+		process.once("SIGINT", () => this.bot.stop("SIGINT"));
+		process.once("SIGTERM", () => this.bot.stop("SIGTERM"));
+		logInfo("signal handlers configured");
+	}
 
-  /**
-   *
-   * @param chatId ID of target chat
-   * @param msg Message to be sent
-   */
-  sendMsg(chatId: string | number, msg: string) {
-    if (!chatId || !msg) {
-      logWarn("chatId or msg not provived");
-    }
+	/**
+	 * Sends message to telegram
+	 * @param msg Message to be sent
+	 */
+	sendMsg(msg: string) {
+		if (!msg) {
+			logWarn("empty msg");
+			return;
+		}
 
-    this.bot.telegram.sendMessage(chatId, msg);
-  }
+		this.bot.telegram.sendMessage(this.chatId, msg);
+	}
 }
 
 export { Bot };
